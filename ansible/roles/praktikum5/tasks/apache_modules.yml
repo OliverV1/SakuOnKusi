@@ -1,8 +1,0 @@
----
-- name: Copy httpd conf file
-  copy:
-    src: httpd.conf
-    dest: /etc/httpd/conf/httpd.conf
-    group: root
-    owner: root
-    mode: 0644
