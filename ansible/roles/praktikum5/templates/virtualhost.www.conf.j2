@@ -1,0 +1,53 @@
+    <VirtualHost *:80>
+        ServerName www.{{ hostname }}.{{ domain_name }}
+        DocumentRoot /var/www/html/www.{{ hostname }}/public_html
+        # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+        LogLevel debug
+
+        ForensicLog /var/log/httpd/www.{{ hostname }}-forensic.log
+        ErrorLog /var/log/httpd/webmail-error.log
+        CustomLog /var/log/httpd/webmail-access.log combined
+    </VirtualHost>
+
+    <VirtualHost *:443>
+        ServerName www.{{ hostname }}.{{ domain_name }}
+        DocumentRoot /var/www/html/www.{{ hostname }}/public_html
+        # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+        LogLevel debug
+
+        ForensicLog /var/log/httpd/www.{{ hostname }}-forensic.log
+        ErrorLog /var/log/httpd/webmail-error.log
+        CustomLog /var/log/httpd/webmail-access.log combined
+
+        SSLEngine On
+        SSLCertificateFile /etc/pki/tls/certs/www_server.crt
+        SSLCertificateKeyFile /etc/pki/tls/private/www_server.key
+        SSLCACertificateFile /etc/pki/tls/certs/cacert.crt
+    </VirtualHost>
+
+    <VirtualHost *:80>
+        ServerName {{ hostname }}.{{ domain_name }}
+        DocumentRoot /var/www/html/www.{{ hostname }}/public_html
+        # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+        LogLevel debug
+
+        ForensicLog /var/log/httpd/{{ hostname }}-forensic.log
+        ErrorLog /var/log/httpd/webmail-error.log
+        CustomLog /var/log/httpd/webmail-access.log combined
+    </VirtualHost>
+
+    <VirtualHost *:443>
+        ServerName {{ hostname }}.{{ domain_name }}
+        DocumentRoot /var/www/html/www.{{ hostname }}/public_html
+        # Possible values include: debug, info, notice, warn, error, crit, alert, emerg.
+        LogLevel debug
+
+        ForensicLog /var/log/httpd/{{ hostname }}-forensic.log
+        ErrorLog /var/log/httpd/webmail-error.log
+        CustomLog /var/log/httpd/webmail-access.log combined
+
+        SSLEngine On
+        SSLCertificateFile /etc/pki/tls/certs/__server.crt
+        SSLCertificateKeyFile /etc/pki/tls/private/__server.key
+        SSLCACertificateFile /etc/pki/tls/certs/cacert.crt
+    </VirtualHost>

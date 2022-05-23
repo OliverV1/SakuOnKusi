@@ -1,0 +1,13 @@
+---
+- name: Install mod_security through DNF
+  dnf:
+    name: mod_security
+    state: present
+
+- name: Copy mod_sec conf file
+  copy:
+    src: mod_sec_local_rules.conf
+    dest: /etc/httpd/modsecurity.d/local_rules/modsecurity_localrules.conf
+    owner: root
+    group: root
+    mode: 0644

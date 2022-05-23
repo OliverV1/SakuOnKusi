@@ -1,0 +1,16 @@
+---
+- hosts: all
+  user: centos
+  become: yes
+  become_user: root
+  vars:
+    hostname: B78820
+    domain_name: sa.cs.ut.ee
+    ip_address: 172.17.89.204
+    student_name: Oliver
+    python_server_location: /usr/local/lib/server.py
+  roles:
+    - { role: praktikum3, tags: praktikum3 }
+    - { role: praktikum4, tags: DNS }
+    - { role: praktikum5, tags: apache }
+

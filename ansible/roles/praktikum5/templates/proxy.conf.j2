@@ -1,0 +1,55 @@
+    <VirtualHost *:80>
+        ServerName proxy.{{ hostname }}.{{ domain_name }}
+        # ServerName sets the name to listen for with requests
+        ErrorLog /var/log/httpd/proxy-error_log
+        CustomLog /var/log/httpd/proxy-access_log common
+
+        ProxyPreserveHost On
+
+        ProxyPass / http://localhost:5000/
+        ProxyPassReverse / http://localhost:5000/
+    </VirtualHost>
+
+    <VirtualHost *:443>
+        ServerName proxy.{{ hostname }}.{{ domain_name }}
+        # ServerName sets the name to listen for with requests
+        ErrorLog /var/log/httpd/proxy-error_log
+        CustomLog /var/log/httpd/proxy-access_log common
+
+        ProxyPreserveHost On
+
+        ProxyPass / http://localhost:5000/
+        ProxyPassReverse / http://localhost:5000/
+
+        SSLEngine On
+        SSLCertificateFile /etc/pki/tls/certs/proxy_server.crt
+        SSLCertificateKeyFile /etc/pki/tls/private/proxy_server.key
+        SSLCACertificateFile /etc/pki/tls/certs/cacert.crt
+    </VirtualHost>
+    
+    <VirtualHost *:80>
+        ServerName wordpress.{{ hostname }}.{{ domain_name }}
+        # ServerName sets the name to listen for with requests
+        
+        ForensicLog /var/log/httpd/wordpress-forensic.log
+        ErrorLog /var/log/httpd/wordpress-error_log
+        CustomLog /var/log/httpd/wordpress-access_log common
+
+        DocumentRoot /var/www/html/wordpress
+    </VirtualHost>
+
+    <VirtualHost *:443>
+        ServerName wordpress.{{ hostname }}.{{ domain_name }}
+        # ServerName sets the name to listen for with requests
+        
+        ForensicLog /var/log/httpd/wordpress-forensic.log
+        ErrorLog /var/log/httpd/wordpress-error_log
+        CustomLog /var/log/httpd/wordpress-access_log common
+
+        DocumentRoot /var/www/html/wordpress
+        
+        SSLEngine On
+        SSLCertificateFile /etc/pki/tls/certs/wordpress_server.crt
+        SSLCertificateKeyFile /etc/pki/tls/private/wordpress_server.key
+        SSLCACertificateFile /etc/pki/tls/certs/cacert.crt
+    </VirtualHost>

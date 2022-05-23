@@ -1,0 +1,131 @@
+---
+- name: DNS Firewall access
+  shell: |
+    firewall-cmd --add-service=dns --permanent
+    firewall-cmd --add-port=8301/udp --permanent # This is a service that helps us find your machine in the network.
+    firewall-cmd --add-port=8301/tcp --permanent # Being able to connect to it is not important, but practice makes perfect.
+    firewall-cmd --add-port=53/tcp --permanent
+    firewall-cmd --add-port=53/udp --permanent
+    firewall-cmd --reload
+
+- name: Disable IPv6
+  copy:
+    src: 70-ipv6.conf
+    dest: /etc/sysctl.d/70-ipv6.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: Inserts into hostname
+  template:
+    src: hostname.j2
+    dest: /etc/hostname
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: Inserts into hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - dns
+
+- name: Install Bind9 server
+  dnf:
+    name:
+      - bind
+      - bind-utils
+
+- name: Create directory /var/named
+  file:
+    path: /var/named
+    state: directory
+    owner: named
+    group: named
+
+- name: Create directory /var/named/log
+  file:
+    path: /var/named/log
+    state: directory
+    owner: named
+    group: named
+
+
+- name: create log files
+  copy:
+    content: ""
+    dest: /var/named/log/{{item.name}}
+    force: no
+    owner: named
+    group: named
+    mode: 0640
+  loop:
+    - name: default
+    - name: auth_servers
+    - name: zone_transfers
+    - name: client_security
+    - name: queries
+    - name: query-errors
+
+# TODO Replace vm-name and ip-address with the right ones in named.conf.j2
+- name: replace /etc/named.conf.j2 file with correct conf
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+    backup: yes
+
+
+# If you have an error related to permissions to /var/named/log/default , please run the following command:
+# -> restorecon -Rv /var/named
+# This command relabels the security of that folder, allowing Bind to write there properly. Now systemctl start named should work properly.
+- name: change nameserver ip in resolv
+  copy:
+    content: |
+      nameserver 127.0.0.1
+      search {{ hostname }}.{{ domain_name }}
+    dest: /etc/resolv.conf
+
+- name: enable auto-staring the "named" service
+  shell: systemctl enable named
+
+- name: create Zone file to /etc/named
+  template:
+    src: zone.j2
+    dest: /etc/named/{{ hostname }}.{{ domain_name }}
+    owner: named
+    group: named
+    mode: 0777
+
+  # TODO Change in_addr.arpa in the beginning of file and port in the last line
+- name: create Reverse Zone file to /etc/named
+  template:
+    src: zone.reverse.j2
+    dest: /etc/named/reverse.{{ hostname }}.{{ domain_name }}
+    owner: named
+    group: named
+    mode: 0777
+
+- name: "get unix time"
+  shell: echo $(date +%s)
+  register: unix_time_stamp
+  delegate_to: localhost
+  run_once: true
+  become: no
+
+- name: "update zone serial"
+  set_fact:
+    __bind9_zone_serial: "{{ unix_time_stamp.stdout }}"
+  run_once: true
+  become: no
+
+- name: restart DNS
+  service:
+    name: named
+    state: reloaded
+    enabled: yes

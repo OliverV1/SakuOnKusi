@@ -1,0 +1,73 @@
+---
+- name: Install packages
+  package:
+    state: present
+    name: 
+      - php-mysqlnd
+      - php-fpm
+      - mariadb-server
+      - httpd
+      - tar
+      - curl
+      - php-json
+
+- name: Start MariaDB
+  systemd:
+    name: mariadb
+    enabled: yes
+    state: restarted
+  tags: restart
+
+- import_tasks: database_setup.yml
+  tags: mysql
+
+# TODO siia tuleks teha see wordpressi init veel teoorias
+# although nad ei kontrolli seda
+
+- name: Download wordpress tarball
+  get_url:
+    dest: /tmp/wordpress.tar.gz
+    owner: proxy
+    group: proxy
+    mode: 0644
+    url: https://wordpress.org/latest.tar.gz
+
+- name: Unpack wordpress tarball
+  unarchive:
+    dest: /var/www/html
+    src: /tmp/wordpress.tar.gz
+    remote_src: yes
+    group: apache
+    owner: apache
+    mode: 0755
+
+- name: Change SELinux security context
+  file:
+    setype: httpd_sys_rw_content_t
+    path: /var/www/html/wordpress
+    state: directory
+
+- name: Copy php conf file
+  copy:
+    src: php-fpm.conf
+    dest: /etc/php-fpm.conf
+    owner: apache
+    group: apache
+    mode: 0644
+    setype: httpd_sys_rw_content_t
+
+- name: Copy php www conf file
+  copy:
+    src: php.www.conf
+    dest: /etc/php-fpm.d/www.conf
+    owner: apache
+    group: apache
+    mode: 0644
+    setype: httpd_sys_rw_content_t
+
+- name: Start php-fpm
+  systemd:
+    name: php-fpm
+    enabled: yes
+    state: restarted
+  tags: restart

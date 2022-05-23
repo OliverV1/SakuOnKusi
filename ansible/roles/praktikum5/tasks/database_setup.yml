@@ -1,0 +1,68 @@
+---
+
+- name: Install PyMySQL
+  package:
+    name: python3-PyMySQL
+    state: present
+
+- name: Set mysql root password
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ current_mariadb_password }}"
+    name: root
+    password: "{{ mariadb_pw }}"
+  ignore_errors: yes
+
+- name: Set mysql root password, attempt 2
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: ""
+    name: root
+    password: "{{ mariadb_pw }}"
+  ignore_errors: yes
+      
+- name: Remove mysql anonymous users
+  community.mysql.mysql_user:
+    name: ''
+    login_user: root
+    login_password: "{{ mariadb_pw }}"
+    host_all: true
+    state: absent
+
+- name: Remove test database
+  community.mysql.mysql_db: 
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_pw }}"
+
+- name: Create wordpress database
+  community.mysql.mysql_db:
+    name: WordPress
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_pw }}"
+
+- name: Grant user admin rights
+  community.mysql.mysql_user:
+    name: admin
+    password: "{{ mailuser_pw }}"
+    priv: '*.*:ALL,GRANT'
+    login_user: root
+    login_password: "{{ mariadb_pw }}"
+
+- name: Create mail database
+  community.mysql.mysql_db:
+    name: roundcubemail
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_pw }}"
+
+- name: Grant user roundcube rights
+  community.mysql.mysql_user:
+    name: roundcube
+    password: "{{ mailuser_pw }}"
+    priv: '*.*:ALL,GRANT'
+    login_user: root
+    login_password: "{{ mariadb_pw }}"
+
