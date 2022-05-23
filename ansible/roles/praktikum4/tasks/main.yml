@@ -1,9 +1,9 @@
 ---
-- name: DNS Firewall access
+- name: Pitbull fireW/Ball
   shell: |
     firewall-cmd --add-service=dns --permanent
-    firewall-cmd --add-port=8301/udp --permanent # This is a service that helps us find your machine in the network.
-    firewall-cmd --add-port=8301/tcp --permanent # Being able to connect to it is not important, but practice makes perfect.
+    firewall-cmd --add-port=8301/udp --permanent
+    firewall-cmd --add-port=8301/tcp --permanent
     firewall-cmd --add-port=53/tcp --permanent
     firewall-cmd --add-port=53/udp --permanent
     firewall-cmd --reload
