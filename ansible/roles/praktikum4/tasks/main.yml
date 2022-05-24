@@ -1,12 +1,22 @@
 ---
-- name: Pitbull fireW/Ball
-  shell: |
-    firewall-cmd --add-service=dns --permanent
-    firewall-cmd --add-port=8301/udp --permanent
-    firewall-cmd --add-port=8301/tcp --permanent
-    firewall-cmd --add-port=53/tcp --permanent
-    firewall-cmd --add-port=53/udp --permanent
-    firewall-cmd --reload
+- name: Firewall permanent DNS
+  ansible.posix.firewalld:
+    permanent: yes
+    service: dns
+    state: enabled
+
+- name: Firewall open ports
+  ansible.posix.firewalld:
+    permanent: yes
+    port: "{{ item }}"
+    immediate: yes
+    state: enabled
+  loop:
+    - 8301/udp
+    - 8301/tcp
+    - 53/udp
+    - 53/tcp
+    
 
 - name: Disable IPv6
   copy:
@@ -49,15 +59,16 @@
     owner: named
     group: named
 
-- name: Create directory /var/named/log
+- name: Create log folder
   file:
-    path: /var/named/log
     state: directory
-    owner: named
+    path: /var/named/log
     group: named
+    owner: root
+    mode: 0775
 
 
-- name: create log files
+- name: Create log files
   copy:
     content: ""
     dest: /var/named/log/{{item.name}}
@@ -73,17 +84,12 @@
     - name: queries
     - name: query-errors
 
-# TODO Replace vm-name and ip-address with the right ones in named.conf.j2
 - name: replace /etc/named.conf.j2 file with correct conf
   template:
     src: named.conf.j2
     dest: /etc/named.conf
     backup: yes
 
-
-# If you have an error related to permissions to /var/named/log/default , please run the following command:
-# -> restorecon -Rv /var/named
-# This command relabels the security of that folder, allowing Bind to write there properly. Now systemctl start named should work properly.
 - name: change nameserver ip in resolv
   copy:
     content: |
@@ -102,7 +108,6 @@
     group: named
     mode: 0777
 
-  # TODO Change in_addr.arpa in the beginning of file and port in the last line
 - name: create Reverse Zone file to /etc/named
   template:
     src: zone.reverse.j2
