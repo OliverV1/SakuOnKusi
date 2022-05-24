@@ -12,5 +12,4 @@
   roles:
     - { role: praktikum3, tags: praktikum3 }
     - { role: praktikum4, tags: DNS }
-    - { role: praktikum5, tags: apache }
 
